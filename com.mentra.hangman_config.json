@@ -1,0 +1,16 @@
+{
+  "name": "Hangman",
+  "description": "The classic game you know and love, now on smart glasses.\n\nTo play, say \"the letter [letter]\".",
+  "onboardingInstructions": "",
+  "publicUrl": "https://test-10178-4a24a192-debhfiy5.onporter.run",
+  "logoURL": "https://imagedelivery.net/nrc8B2Lk8UIoyW7fY8uHVg/0f5c5186-4565-487f-8478-b93abd90b000/square",
+  "appType": "standard",
+  "permissions": [
+    {
+      "type": "MICROPHONE",
+      "description": ""
+    }
+  ],
+  "settings": [],
+  "tools": []
+}
