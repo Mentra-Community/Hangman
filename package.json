@@ -1,0 +1,27 @@
+{
+  "name": "hangman-game",
+  "version": "1.0.0",
+  "description": "Hangman game for smart glasses with 526x100 bitmap display",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "npm run build && node dist/index.js"
+  },
+  "keywords": [
+    "hangman",
+    "game",
+    "bitmap"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@mentra/sdk": "^2.1.10",
+    "dotenv": "^17.2.0",
+    "node-fetch": "^2.7.0"
+  }
+}

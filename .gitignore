@@ -1,0 +1,19 @@
+# Environment variables
+.env
+.env.development
+.env.example
+.env.production
+.env.staging
+
+# Logs
+logs
+*.log
+*.log.*
+
+# Dependency directories
+node_modules/
+dist/
+
+# Runtime data
+pids
+*.pid
