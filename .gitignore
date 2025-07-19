@@ -17,3 +17,6 @@ dist/
 # Runtime data
 pids
 *.pid
+
+# Debug files
+debug_bmps/

@@ -4,13 +4,16 @@ dotenv.config();
 import {
   AppServer,
   AppSession,
+  BitmapUtils,
   StreamType,
+  ViewType,
   createTranscriptionStream,
 } from '@mentra/sdk';
 import { getRandomWord } from './words';
 import { create1BitBMP, createCanvas, drawLine, drawCircle } from './bitmap';
 import { drawText, getTextWidth } from './font';
 import * as path from 'path';
+import * as fs from 'fs';
 
 // Configuration constants
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 80;
@@ -59,11 +62,13 @@ class HangmanManager {
     return this.games.get(userId);
   }
 
-  processInput(userId: string, input: string): void {
+  processInput(userId: string, input: string): boolean {
     let game = this.getGame(userId);
+    let stateChanged = false;
     
     if (!game) {
       game = this.createGame(userId);
+      stateChanged = true;
     }
 
     const normalizedInput = input.trim().toUpperCase();
@@ -71,12 +76,13 @@ class HangmanManager {
     if (game.state === GameState.WAITING_RESTART) {
       if (normalizedInput.includes('PLAY AGAIN')) {
         this.createGame(userId);
-        return;
+        return true; // New game started
       }
+      return false; // No change
     }
 
     if (game.state !== GameState.PLAYING) {
-      return;
+      return false; // No change
     }
 
     // Strip punctuation from the end and check for pattern " {letter}"
@@ -94,6 +100,7 @@ class HangmanManager {
 
     if (guessedLetter && !game.guessedLetters.has(guessedLetter)) {
       game.guessedLetters.add(guessedLetter);
+      stateChanged = true; // New letter guessed
       
       if (!game.word.includes(guessedLetter)) {
         game.wrongGuesses++;
@@ -107,6 +114,8 @@ class HangmanManager {
         game.state = GameState.WAITING_RESTART;
       }
     }
+    
+    return stateChanged;
   }
 
   private isWordComplete(game: HangmanGame): boolean {
@@ -126,7 +135,33 @@ class HangmanManager {
     }
 
     const bitmapBuffer = create1BitBMP(526, 100, canvas);
-    return bitmapBuffer.toString('base64');
+    
+    // DEBUG: Save BMP files for debugging
+    // try {
+    //   const debugDir = path.join(__dirname, '..', 'debug_bmps');
+    //   if (!fs.existsSync(debugDir)) {
+    //     fs.mkdirSync(debugDir, { recursive: true });
+    //   }
+      
+    //   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    //   const filename = `hangman_${userId}_${timestamp}.bmp`;
+    //   const filepath = path.join(debugDir, filename);
+      
+    //   fs.writeFileSync(filepath, bitmapBuffer);
+    //   console.log(`DEBUG: Saved BMP to ${filepath}`);
+    // } catch (error) {
+    //   console.error('DEBUG: Failed to save BMP:', error);
+    // }
+
+    let frameBase64 = bitmapBuffer.toString('base64');
+       const validation = BitmapUtils.validateBmpBase64(frameBase64);
+      if (!validation.isValid) {
+        console.error(
+          `❌ Frame validation failed: ${validation.errors.join(", ")}`
+        );
+      }
+    
+    return frameBase64;
   }
 
   private drawWord(canvas: boolean[][], game: HangmanGame): void {
@@ -292,10 +327,15 @@ class HangmanApp extends AppServer {
     if (!isFinal) return;
     
     // Process the input
-    hangmanManager.processInput(userId, text);
+    const stateChanged = hangmanManager.processInput(userId, text);
     
-    // Update the display
-    this.updateDisplay(session, userId);
+    // Update the display only if state changed
+    if (stateChanged) {
+      console.log(`[Session ${sessionId}]: Game state changed, updating display`);
+      this.updateDisplay(session, userId);
+    } else {
+      console.log(`[Session ${sessionId}]: No game state change, skipping display update`);
+    }
   }
 
   /**
@@ -304,7 +344,11 @@ class HangmanApp extends AppServer {
   private updateDisplay(session: AppSession, userId: string): void {
     try {
       const base64Bitmap = hangmanManager.renderGameStateAsBase64(userId);
-      session.layouts.showBitmapView(base64Bitmap);
+      let buffer = Buffer.from(base64Bitmap, "base64");
+      BitmapUtils.loadBmpFromDataAsBase64(buffer).then((out) => {
+        session.layouts.showBitmapView(out, {view: ViewType.MAIN});
+      });
+      
     } catch (error) {
       console.error('Error updating display:', error);
     }
