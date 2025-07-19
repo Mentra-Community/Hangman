@@ -4,9 +4,8 @@
   "description": "Hangman game for smart glasses with 526x100 bitmap display",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "npm run build && node dist/index.js",
-    "dev": "npm run build && node dist/index.js"
+    "start": "bun src/index.ts",
+    "dev": "bun src/index.ts"
   },
   "keywords": [
     "hangman",
