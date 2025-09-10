@@ -19,7 +19,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@mentra/sdk": "^2.1.10",
+    "@mentra/sdk": "latest",
     "dotenv": "^17.2.0",
     "node-fetch": "^2.7.0"
   }
